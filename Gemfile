@@ -34,6 +34,9 @@ gem 'spring',        group: :development
 gem 'better_errors'
 gem 'binding_of_caller'
 
+# Scraping
+gem 'nokogiri'
+
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
 
