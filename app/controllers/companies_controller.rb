@@ -5,6 +5,6 @@ class CompaniesController < ApplicationController
 
   def show
     @company = Company.find(params[:id])
-    @annualincome = @company.annualincomes.first
+    @annualincome = @company.annual_incomes.first
   end
 end

@@ -2,7 +2,7 @@
 
 <% if not @annualincome.nil? %>
   <table class="table table-condensed">
-    <% Annualincome.columns[4..52].each_with_index do |column, index| %>
+    <% AnnualIncome.columns[4..52].each_with_index do |column, index| %>
       <tr>
         <td><%= column.name %></td>
         <td><%= @annualincome["#{column.name}"].to_s %></td>

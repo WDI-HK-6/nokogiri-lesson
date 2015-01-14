@@ -1,3 +1,3 @@
 class Company < ActiveRecord::Base
-	has_many :annualincomes
+	has_many :annual_incomes
 end

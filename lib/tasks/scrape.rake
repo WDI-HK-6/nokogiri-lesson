@@ -4,52 +4,51 @@ namespace :scrape do
 
   # this is your task function
   task :google_finance => :environment do
-    Company.all.each do |company|
-      record_data(company)
-    end
-  end
-
-  def record_data(company)
     require 'open-uri'
     require 'nokogiri'
 
-    # url = "https://www.google.com/finance?q=NASDAQ%3A#{company.symbol.upcase}&fstype=ii"
+    all_companies = Company.all
 
-    url = "http://www.google.ca/finance?q="+company.symbol.upcase+"&fstype=ii"
+    # loop thru all companies
+    all_companies.each do |company|
+      # just scrape one company
+      puts "#{company.name} (#{company.symbol}) -- scraping in progress"
+      scrape_just_one_company(company)
+    end
 
-    document = open(url).read
+    # at the end, I can have all the companies scraped
+  end
 
-    html_doc = Nokogiri::HTML(document)
+  def scrape_just_one_company(company)
+    url = "https://www.google.com/finance?q=#{company.symbol}&fstype=ii"
+    site = open(url).read
 
-    # columns 
-    # puts html_doc.css("div.id-incannualdiv > table.gf-table.rgt > tbody > tr > td.lft.lm").text
-    # puts html_doc.css("div.id-incannualdiv > table.gf-table.rgt > tbody > tr > td:nth-child(2).r").text
-    # puts html_doc.css("div.id-incannualdiv > table.gf-table.rgt > tbody > tr > td:nth-child(3).r").text
-    # puts html_doc.css("div.id-incannualdiv > table.gf-table.rgt > tbody > tr > td:nth-child(4).r").text
-    # puts html_doc.css("div.id-incannualdiv > table.gf-table.rgt > tbody > tr > td.r.rm").text
+    html_doc = Nokogiri::HTML(site)
 
-    details = html_doc.css("div.id-incannualdiv > table.gf-table.rgt > tbody > tr > td.r.rm")
+    data_structure = "div.id-incannualdiv > table.gf-table.rgt > tbody > tr > td:nth-child(2).r"
 
-    if not details.any?
+    income_statement = html_doc.css(data_structure)
+
+    # only continue of income_statement exists
+
+    # return true of there's at least one income statement, otherwise, return false
+    if not income_statement.any?
+      # stop the program
+      puts "#{company.name} doesn't have any income statements."
       return
     end
 
-    # details.each do |item|
-    #   puts item.text
-    # end
+    new_record = company.annual_incomes.new
 
-    new_record = company.annualincomes.new
-
-    Annualincome.columns[4..52].each_with_index do |column, index|
-      new_record["#{column.name}"] = details[index].text
-      new_record.save
+    AnnualIncome.columns[4..52].each_with_index do |column, index|
+      new_record[column.name] = income_statement[index].text
     end
+    new_record.save
   end
 
   desc "Scrape companies"
   task :make_companies => :environment do
     require 'open-uri'
-    require 'nokogiri'
     require 'csv'
 
     url = "http://s3.amazonaws.com/nvest/nasdaq_09_11_2014.csv"
